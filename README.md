@@ -11,7 +11,7 @@
 ```js
 import { concurrencyQueue } from '../src/index';
 
-const concurrency = concurrencyQueue(1);
+const limit = concurrencyQueue(1);
 
 function fetchSomething(msg: string) {
   return new Promise((resolve) => {
@@ -30,9 +30,9 @@ function doSomething() {
 }
 
 const input = [
-	concurrency(() => fetchSomething('foo')),
-	concurrency(() => fetchSomething('bar')),
-	concurrency(() => doSomething())
+	limit(() => fetchSomething('foo')),
+	limit(() => fetchSomething('bar')),
+	limit(() => doSomething())
 ];
 
 // Only one promise is run at once
