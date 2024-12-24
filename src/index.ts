@@ -1,38 +1,5 @@
-export type LimitFunction = {
-	/**
-	The number of promises that are currently running.
-	*/
-	readonly activeCount: number;
-
-	/**
-	The number of promises that are waiting to run (i.e. their internal `fn` was not called yet).
-	*/
-	readonly pendingCount: number;
-
-	/**
-	Get or set the concurrency limit.
-	*/
-	concurrency: number;
-
-	/**
-	Discard pending promises that are waiting to run.
-
-	This might be useful if you want to teardown the queue at the end of your program's lifecycle or discard any function calls referencing an intermediary state of your app.
-
-	Note: This does not cancel promises that are already running.
-	*/
-	clearQueue: () => void;
-
-	/**
-	@param fn - Promise-returning/async function.
-	@param arguments - Any arguments to pass through to `fn`. Support for passing arguments on to the `fn` is provided in order to be able to avoid creating unnecessary closures. You probably don't need this optimization unless you're pushing a lot of functions.
-	@returns The promise returned by calling `fn(...arguments)`.
-	*/
-	<Arguments extends unknown[], ReturnType>(
-		function_: (...arguments_: Arguments) => PromiseLike<ReturnType> | ReturnType,
-		...arguments_: Arguments
-	): Promise<ReturnType>;
-};
+import Queue from "./Queue";
+import type { LimitFunction } from './types'
 
 
 type Arguments = unknown[]
@@ -44,85 +11,6 @@ interface QueueEle {
     resolve: Function;
     reject: Function;
     args: Arguments;
-}
-
-type QueueNode<T> = {
-    value: T;
-    next: QueueNode<T> | null;
-}
-
-/**
- * 链表的方式实现队列
- */
-class Queue<T>{
-    header: QueueNode<T> | null = null
-    tail: QueueNode<T> | null = null
-    size: number = 0
-    push(value: T){
-        const node = {value, next: null}
-        if(this.size === 0) {
-            this.header = node
-            this.tail = node
-        }else {
-            this.tail!.next = node
-            this.tail = node
-        }
-        this.size++
-    }
-    shift(): T | null {
-        if(this.size === 0) return null
-        const node = this.header
-        this.header = this.header!.next
-        this.size--
-        return node!.value
-    }
-
-    isExist(predicate: (value: T)=> boolean): boolean {
-        let node = this.header;
-        while (node) {
-            if (predicate(node.value)) {
-                return true
-            }
-            node = node.next;
-        }
-        return false
-    }
-
-    delete(predicate: (value: T)=> boolean) {
-        let node = this.header;
-        let pre = null;
-    
-        while (node) {
-            if (predicate(node.value)) {
-                if (node === this.header) {
-                    this.header = this.header.next;
-                    if (node === this.tail) {
-                        this.tail = null; // 如果只有一个节点
-                    }
-                } else if (node === this.tail) {
-                    this.tail = pre;
-                    if (pre) {
-                        pre.next = null;
-                    }
-                } else {
-                    pre!.next = node.next;
-                }
-                this.size--;
-                return; // 找到并删除节点后退出
-            }
-            pre = node;
-            node = node.next;
-        }
-    }
-
-    get length(){
-        return this.size
-    }
-    clear(){
-        this.header = null
-        this.tail = null
-        this.size = 0
-    }
 }
 
 
@@ -194,7 +82,6 @@ export function concurrencyQueue(concurrency: number): LimitFunction {
                 .then((res) => resolve(res))
                 .catch((err) => reject(err))
                 .finally(() => {
-                    console.log('finally')
                     runningTask.splice(runningTask.findIndex((item) => item === task ), 1)
                     // 查看队列是否还有任务，有任务则继续
                     if(queue.length > 0 && runningTask.length <= _concurrency) {
