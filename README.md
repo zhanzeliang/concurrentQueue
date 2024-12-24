@@ -1,6 +1,7 @@
 # concurrentQueue
 
 > Run multiple promise-returning & async functions with limited concurrency
+> This library has similar functionality to [p-limit](https://github.com/sindresorhus/p-limit/tree/main) but with optimized implementation
 
 *Works in Node.js and browsers.*
 ```
@@ -125,16 +126,3 @@ Type: `number`\
 Minimum: `1`
 
 Concurrency limit.
-
-## FAQ
-
-### How is this different from the [`p-queue`](https://github.com/sindresorhus/p-queue) package?
-
-This package is only about limiting the number of concurrent executions, while `p-queue` is a fully featured queue implementation with lots of different options, introspection, and ability to pause the queue.
-
-## Related
-
-- [p-throttle](https://github.com/sindresorhus/p-throttle) - Throttle promise-returning & async functions
-- [p-debounce](https://github.com/sindresorhus/p-debounce) - Debounce promise-returning & async functions
-- [p-all](https://github.com/sindresorhus/p-all) - Run promise-returning & async functions concurrently with optional limited concurrency
-- [More…](https://github.com/sindresorhus/promise-fun)
